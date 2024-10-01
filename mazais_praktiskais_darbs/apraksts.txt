@@ -1,0 +1,26 @@
+Termiņš: trešdiena, 2024. gada 9. oktobris, 23:59
+- Izvēlieties un saskaņojiet ar pasniedzēju uzdevumu (piemēram, TSP, VRP, Sudoku, utml. ...).​
+
+- Izvēlieties optimizācijas algoritmu (piemēram, SA, TS, LA, utml. …).​
+
+- Implementējiet problēmu un optimizācijas algoritmu Jūsu izvēlētā vidē (piemēram, Python, Java, C#, utml. ...).​
+
+     !! Neizmantojiet gatavas optimizācijas algoritmu implementācijas !!​
+
+- Sagatavojiet vairākus dažada izmēra problēmu testa piemērus un veiciet testēšanu, piefiksējot izpildes laiku un risinājuma kvalitāti.​
+
+- Īsi aprakstiet padarīto.​
+
+- Iesniedziet e-studijās izdarītā īsu aprakstu (vienu PDF failu), kas satur: ​
+
+      1. Uzdevuma formulējumu;​
+
+      2. Algoritma aprakstu, kas ietver domēnu,  novērtēšanu un gājienu;​
+
+      3. Testēšanas aprakstu;​
+
+      4. Saiti uz Git(hub) repozitoriju, kas satur programmas kodu un testēšanas piemērus.​
+
+Termiņš ir līdz 9. oktobra plkst. 23:59.​
+
+Praktiskais darbs ir obligāts priekšnosacījums pozitīva vērtējuma saņemšanai.
