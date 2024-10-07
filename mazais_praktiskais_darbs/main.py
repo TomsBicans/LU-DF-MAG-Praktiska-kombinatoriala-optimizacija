@@ -1,7 +1,7 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import List, Callable, Dict
+from typing import List, Callable, Dict, Tuple
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from enum import Enum
@@ -54,18 +54,64 @@ class Solution:
     routes: List[Route]
 
 
+@dataclass
+class TemperatureStep:
+    temperature: float
+    iteration_steps: int
+
+
+@dataclass
+class CoolingSchedule:
+    temperature_steps: List[TemperatureStep]
+
+    def get_iteration_steps(self) -> List[int]:
+        return [step.iteration_steps for step in self.temperature_steps]
+
+    def get_temperatures(self) -> List[float]:
+        return [step.temperature for step in self.temperature_steps]
+
+
 class SimulatedAnnealing:
 
+    @staticmethod
     def main(
         domain: Domain,
         cost_function: Callable[[Solution], Cost],
-        neighbour_function: Callable[[Solution], List[Solution]],
-        temperature: List[float],  # TODO: check if type is correct
-        iteration_steps: List[int],  # TODO: check if type is correct
-    ) -> Dict[Solution, Solution]:
+        neighbour_function: Callable[[Solution], Solution],
+        temperature: List[float],  # t[k]
+        iteration_steps: List[int],  # L[k]
+    ) -> Tuple[Solution, Solution]:
         initial_solution = SimulatedAnnealing.initialize_solution(domain)
+        current_solution = initial_solution
         best_solution = initial_solution
-        # TODO: implement the rest of the algorithm. Can be found in L3 slide 7
+        current_cost = cost_function(current_solution).soft
+        best_cost = current_cost
+
+        # 3. Lekcijas 7. slaida algoritms
+        k = 0
+
+        while k < len(temperature):
+            t_k = temperature[k]
+            L_k = iteration_steps[k]
+
+            for _ in range(L_k):
+
+                neighbor_solution = neighbour_function(current_solution)
+                neighbor_cost = cost_function(neighbor_solution).soft
+
+                delta = neighbor_cost - current_cost
+
+                # Akceptēšanas kritērijs
+                if delta < 0 or random.random() < math.exp(-delta / t_k):
+                    current_solution = neighbor_solution
+                    current_cost = neighbor_cost
+
+                    if current_cost < best_cost:
+                        best_solution = current_solution
+                        best_cost = current_cost
+
+            k += 1
+
         return initial_solution, best_solution
 
     @staticmethod
@@ -93,25 +139,21 @@ class SimulatedAnnealing:
         return distance_cost(solution)
 
     @staticmethod
-    def neighbour_function(
-        solution: Solution,
-    ) -> List[Solution]:  # TODO: implement neighbor function
-        neighbors = []
-        if not solution.routes:
-            return neighbors
+    def neighbour_function(solution: Solution) -> Solution:
+        neighbor_solution = Solution(routes=[])
+        for route in solution.routes:
+            new_route = Route(route=route.route[:])
+            neighbor_solution.routes.append(new_route)
 
-        current_route = solution.routes[0].route
+        # Pagaidām tiek uzskatīts, ka ir tikai 1 maršruts katram risinājumam, bet to šeit var pielāgot
+        route = neighbor_solution.routes[0].route
 
-        # Visas iespējamās kombinācijas, apmainot vietām 2 blakus elementus. Koncepts no lekcijā stāstītā.
-        for i in range(1, len(current_route) - 1):
-            for j in range(1, len(current_route) - 1):
-                if i != j:
-                    new_route = current_route.copy()
-                    customer = new_route.pop(i)
-                    new_route.insert(j, customer)
-                    neighbors.append(Solution(routes=[Route(route=new_route)]))
+        # Izvēlamies 2 nejaušus indeksus, ko mainīt vietām, izņemot sākuma un beigu punktus (jo tā ir stacija, kura ir nemainīga)
+        idx1, idx2 = random.sample(range(1, len(route) - 1), 2)
+        # Apmainām vietām šos 2 klientus
+        route[idx1], route[idx2] = route[idx2], route[idx1]
 
-        return neighbors
+        return neighbor_solution
 
 
 class prints:
@@ -129,7 +171,6 @@ def plot_main(initial_solution: Solution, best_solution: Solution):
             x = [location.x for location in route.route]
             y = [location.y for location in route.route]
             ax.plot(x, y, marker="o")
-            # Annotate points
             for location in route.route:
                 ax.annotate(location.name.value[:4].upper(), (location.x, location.y))
         ax.set_title(title)
@@ -172,16 +213,34 @@ def main():
     ]
 
     domain = Domain(station, customers)
-    temperature = []
-    iteration_steps = []
+
+    cooling_schedule = CoolingSchedule(
+        temperature_steps=[
+            TemperatureStep(temperature=1000, iteration_steps=100),
+            TemperatureStep(temperature=900, iteration_steps=100),
+            TemperatureStep(temperature=800, iteration_steps=100),
+            TemperatureStep(temperature=700, iteration_steps=100),
+            TemperatureStep(temperature=600, iteration_steps=100),
+            TemperatureStep(temperature=500, iteration_steps=100),
+            TemperatureStep(temperature=400, iteration_steps=80),
+            TemperatureStep(temperature=300, iteration_steps=80),
+            TemperatureStep(temperature=200, iteration_steps=60),
+            TemperatureStep(temperature=100, iteration_steps=60),
+            TemperatureStep(temperature=50, iteration_steps=40),
+            TemperatureStep(temperature=25, iteration_steps=40),
+            TemperatureStep(temperature=10, iteration_steps=30),
+            TemperatureStep(temperature=5, iteration_steps=20),
+            TemperatureStep(temperature=1, iteration_steps=10),
+        ]
+    )
 
     start = t.time()
     initial_solution, best_solution = SimulatedAnnealing.main(
         domain,
         SimulatedAnnealing.cost_function,
         SimulatedAnnealing.neighbour_function,
-        temperature,
-        iteration_steps,
+        cooling_schedule.get_temperatures(),
+        cooling_schedule.get_iteration_steps(),
     )
     end = t.time()
 
