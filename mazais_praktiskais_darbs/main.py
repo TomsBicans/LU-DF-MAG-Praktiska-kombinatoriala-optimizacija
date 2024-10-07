@@ -19,7 +19,6 @@ class Cost:
     hard: float
     soft: float
 
-    # To string method
     def __str__(self):
         return f"Cost(hard={self.hard}, soft={self.soft})"
 
