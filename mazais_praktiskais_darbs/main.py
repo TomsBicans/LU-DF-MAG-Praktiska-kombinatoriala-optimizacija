@@ -116,7 +116,7 @@ def plot_main(initial_solution: Solution, best_solution: Solution):
             ax.plot(x, y, marker="o")
             # Annotate points
             for location in route.route:
-                ax.annotate(location.name.value[0].upper(), (location.x, location.y))
+                ax.annotate(location.name.value[:4].upper(), (location.x, location.y))
         ax.set_title(title)
         ax.set_xlabel("X Coordinate")
         ax.set_ylabel("Y Coordinate")
