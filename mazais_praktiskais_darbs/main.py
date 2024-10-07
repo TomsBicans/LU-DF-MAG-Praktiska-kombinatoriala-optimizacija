@@ -30,6 +30,7 @@ class LocationType(Enum):
 
 @dataclass
 class Location(Point):
+    id: int
     name: LocationType
 
 
@@ -95,7 +96,22 @@ class SimulatedAnnealing:
     def neighbour_function(
         solution: Solution,
     ) -> List[Solution]:  # TODO: implement neighbor function
-        ...
+        neighbors = []
+        if not solution.routes:
+            return neighbors
+
+        current_route = solution.routes[0].route
+
+        # Visas iespējamās kombinācijas, apmainot vietām 2 blakus elementus. Koncepts no lekcijā stāstītā.
+        for i in range(1, len(current_route) - 1):
+            for j in range(1, len(current_route) - 1):
+                if i != j:
+                    new_route = current_route.copy()
+                    customer = new_route.pop(i)
+                    new_route.insert(j, customer)
+                    neighbors.append(Solution(routes=[Route(route=new_route)]))
+
+        return neighbors
 
 
 class prints:
@@ -144,12 +160,15 @@ def plot_main(initial_solution: Solution, best_solution: Solution):
 def main():
     x_max = 100
     y_max = 100
-    station = Location(x_max / 2, y_max / 2, LocationType.station)
+    station = Location(x_max / 2, y_max / 2, 1, LocationType.station)
     customers = [
         Location(
-            random.uniform(0, x_max), random.uniform(0, y_max), LocationType.customer
+            random.uniform(0, x_max),
+            random.uniform(0, y_max),
+            i + 2,
+            LocationType.customer,
         )
-        for _ in range(10)
+        for i in range(10)
     ]
 
     domain = Domain(station, customers)
