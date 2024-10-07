@@ -1,7 +1,9 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import List, Callable
+from typing import List, Callable, Dict
+import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 from enum import Enum
 import time as t
 
@@ -16,6 +18,10 @@ class Point:
 class Cost:
     hard: float
     soft: float
+
+    # To string method
+    def __str__(self):
+        return f"Cost(hard={self.hard}, soft={self.soft})"
 
 
 class LocationType(Enum):
@@ -56,10 +62,11 @@ class SimulatedAnnealing:
         neighbour_function: Callable[[Solution], List[Solution]],
         temperature: List[float],  # TODO: check if type is correct
         iteration_steps: List[int],  # TODO: check if type is correct
-    ) -> Solution:
+    ) -> Dict[Solution, Solution]:
         initial_solution = SimulatedAnnealing.initialize_solution(domain)
+        best_solution = initial_solution
         # TODO: implement the rest of the algorithm. Can be found in L3 slide 7
-        return initial_solution
+        return initial_solution, best_solution
 
     @staticmethod
     def initialize_solution(domain: Domain) -> Solution:
@@ -101,6 +108,40 @@ class prints:
                 print(stop)
 
 
+def plot_main(initial_solution: Solution, best_solution: Solution):
+    def plot_solution(ax: Axes, solution: Solution, title: str):
+        for route in solution.routes:
+            x = [location.x for location in route.route]
+            y = [location.y for location in route.route]
+            ax.plot(x, y, marker="o")
+            # Annotate points
+            for location in route.route:
+                ax.annotate(location.name.value[0].upper(), (location.x, location.y))
+        ax.set_title(title)
+        ax.set_xlabel("X Coordinate")
+        ax.set_ylabel("Y Coordinate")
+        ax.grid(True)
+
+    fig, axs = plt.subplots(1, 2, figsize=(14, 7))
+
+    # Sākotnējais risinājums
+    plot_solution(
+        axs[0],
+        initial_solution,
+        f"Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}",
+    )
+
+    # Labākais atrastais risinājums
+    plot_solution(
+        axs[1],
+        best_solution,
+        f"Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}",
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
 def main():
     x_max = 100
     y_max = 100
@@ -117,7 +158,7 @@ def main():
     iteration_steps = []
 
     start = t.time()
-    best_solution = SimulatedAnnealing.main(
+    initial_solution, best_solution = SimulatedAnnealing.main(
         domain,
         SimulatedAnnealing.cost_function,
         SimulatedAnnealing.neighbour_function,
@@ -128,6 +169,8 @@ def main():
 
     prints.solution(best_solution)
     print("Total time: ", end - start)
+
+    plot_main(initial_solution, best_solution)
 
 
 if __name__ == "__main__":
