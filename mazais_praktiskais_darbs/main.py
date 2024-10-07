@@ -52,27 +52,38 @@ class SimulatedAnnealing:
 
     def main(
         domain: Domain,
-        cost_function: Callable,  # TODO: add strong typing to callable function
-        neighbour_function: Callable,  # TODO: add strong typing to callable function
+        cost_function: Callable[[Solution], Cost],
+        neighbour_function: Callable[[Solution], List[Solution]],
         temperature: List[float],  # TODO: check if type is correct
         iteration_steps: List[int],  # TODO: check if type is correct
     ) -> Solution:
-        initial_solution = SimulatedAnnealing.initialize_solution(domain, cost_function)
+        initial_solution = SimulatedAnnealing.initialize_solution(domain)
         # TODO: implement the rest of the algorithm. Can be found in L3 slide 7
         return initial_solution
 
     @staticmethod
-    def initialize_solution(solution_set: Domain, cost_function: Callable) -> Solution:
-        # TODO: implement proper random initialization
-        res = []
-        res.append(solution_set.station)
-        res.extend(solution_set.customers)
-        res.append(solution_set.station)
-        return Solution([res])
+    def initialize_solution(domain: Domain) -> Solution:
+        customers = domain.customers[:]
+        random.shuffle(customers)
+        route = [domain.station] + customers + [domain.station]
+        return Solution(routes=[Route(route=route)])
 
     @staticmethod
-    def cost_function(solution: Solution) -> Cost:  # TODO: implement cost function
-        return Cost(0, 0)
+    def cost_function(solution: Solution) -> Cost:
+        # Rēķinām kopējo distanci starp maršruta punktiem,
+        # bet var papildināt domēnu un rēķināt arī enerģijas patēriņu.
+        def distance_cost(solution: Solution) -> Cost:
+            total_distance = 0.0
+            for route in solution.routes:
+                route_distance = 0.0
+                locations = route.route
+                for i in range(len(locations) - 1):
+                    route_distance += distance(locations[i], locations[i + 1])
+                total_distance += route_distance
+
+            return Cost(0.0, total_distance)
+
+        return distance_cost(solution)
 
     @staticmethod
     def neighbour_function(
@@ -86,7 +97,7 @@ class prints:
     def solution(s: Solution) -> None:
         print("Cost:", SimulatedAnnealing.cost_function(s))
         for r in s.routes:
-            for stop in r:
+            for stop in r.route:
                 print(stop)
 
 
@@ -117,12 +128,6 @@ def main():
 
     prints.solution(best_solution)
     print("Total time: ", end - start)
-    # customers.insert(0, station)
-    # [print(p) for p in customers]
-
-    # Distance matrix
-    # distance_matrix = [[distance(p1, p2) for p2 in customers] for p1 in customers]
-    # print(distance_matrix)
 
 
 if __name__ == "__main__":
