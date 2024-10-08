@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from enum import Enum
 import time as t
+from tqdm import tqdm
 
 
 @dataclass
@@ -31,7 +32,7 @@ class LocationType(Enum):
 @dataclass
 class Location(Point):
     id: int
-    name: LocationType
+    name: str
 
 
 @dataclass
@@ -51,6 +52,25 @@ class Domain:
 @dataclass
 class Solution:
     routes: List[Route]
+    
+    def __repr__(self):
+        return f"Solution(routes={self.routes})"
+
+    def serialize(self, file_path: str) -> None:
+        """
+        Serializes the Solution instance to a text file using the __repr__ method.
+        """
+        with open(file_path, 'w') as file:
+            file.write(repr(self)) 
+
+    @staticmethod
+    def deserialize(file_path: str) -> 'Solution':
+        """
+        Deserializes the Solution instance from a text file using eval().
+        """
+        with open(file_path, 'r') as file:
+            data = file.read() 
+            return eval(data) 
 
 
 @dataclass
@@ -93,11 +113,11 @@ class SimulatedAnnealing:
         # 3. Lekcijas 7. slaida algoritms
         k = 0
 
-        while k < len(temperature):
+        for k in tqdm(range(len(temperature)), desc="Temperature steps"):
             t_k = temperature[k]
             L_k = iteration_steps[k]
 
-            for _ in range(L_k):
+            for _ in tqdm(range(L_k), desc=f"Iteration steps at T={t_k}"):
 
                 neighbor_solution = neighbour_function(current_solution)
                 neighbor_cost = cost_function(neighbor_solution).soft
@@ -178,7 +198,7 @@ def plot_main(initial_solution: Solution, best_solution: Solution):
             y = [location.y for location in route.route]
             ax.plot(x, y, marker="o")
             for location in route.route:
-                ax.annotate(location.name.value[:4].upper(), (location.x, location.y))
+                ax.annotate(location.name[:4].upper(), (location.x, location.y))
         ax.set_title(title)
         ax.set_xlabel("X Coordinate")
         ax.set_ylabel("Y Coordinate")
@@ -207,19 +227,20 @@ def plot_main(initial_solution: Solution, best_solution: Solution):
 def main():
     x_max = 100
     y_max = 100
-    customer_count = 50
-    station = Location(x_max / 2, y_max / 2, 1, LocationType.station)
+    customer_count = 10
+    station = Location(x_max / 2, y_max / 2, 1, LocationType.station.value)
     customers = [
         Location(
             random.uniform(0, x_max),
             random.uniform(0, y_max),
             i + 2,
-            LocationType.customer,
+            LocationType.customer.value,
         )
         for i in range(customer_count)
     ]
 
     domain = Domain(station, customers)
+    
 
     cooling_schedule = CoolingSchedule(
         customer_count,
@@ -255,7 +276,14 @@ def main():
     prints.solution(best_solution)
     print("Total time: ", end - start)
 
+    best_solution.serialize("best_solution.txt")
+    
+    test = Solution.deserialize("best_solution.txt")
+    print(test)
+    
     plot_main(initial_solution, best_solution)
+    
+
 
 
 if __name__ == "__main__":
