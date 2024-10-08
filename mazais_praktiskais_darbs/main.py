@@ -279,11 +279,11 @@ def main():
     test_cases: List[TestCase] = [
         TestCase('Small', 10, 100, 100, 'tests/1/'),
         TestCase('Medium', 20, 100, 100, 'tests/2/'),
-        # TestCase('Large', 30, 100, 100, 'tests/3/'),
-        # TestCase('Huge', 40, 100, 100, 'tests/4/'),
-        # TestCase('Giant', 50, 100, 100, 'tests/5/'),
-        # TestCase('Colossal', 100, 100, 100, 'tests/6/'),
-        # TestCase('Gigantic', 200, 100, 100, 'tests/7/'),
+        TestCase('Large', 30, 100, 100, 'tests/3/'),
+        TestCase('Huge', 40, 100, 100, 'tests/4/'),
+        TestCase('Giant', 50, 100, 100, 'tests/5/'),
+        TestCase('Colossal', 100, 100, 100, 'tests/6/'),
+        TestCase('Gigantic', 200, 100, 100, 'tests/7/'),
     ]
     
     results = []
