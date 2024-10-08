@@ -39,8 +39,7 @@ class Route:
     route: List[Location]
 
 
-def distance(p1: Point, p2: Point) -> float:
-    return math.hypot(p1.x - p2.x, p1.y - p2.y)
+
 
 
 @dataclass
@@ -67,7 +66,7 @@ class CoolingSchedule:
 
     def get_iteration_steps(self) -> List[int]:
         return [
-            int(int(step.iteration_steps_constant**1.5) * self.customer_count)
+            int(int(step.iteration_steps_constant**2) * self.customer_count)
             for step in self.temperature_steps
         ]
 
@@ -130,6 +129,9 @@ class SimulatedAnnealing:
         # Rēķinām kopējo distanci starp maršruta punktiem,
         # bet var papildināt domēnu un rēķināt arī enerģijas patēriņu.
         def distance_cost(solution: Solution) -> Cost:
+            def distance(p1: Point, p2: Point) -> float:
+                return math.hypot(p1.x - p2.x, p1.y - p2.y)
+            
             total_distance = 0.0
             for route in solution.routes:
                 route_distance = 0.0
