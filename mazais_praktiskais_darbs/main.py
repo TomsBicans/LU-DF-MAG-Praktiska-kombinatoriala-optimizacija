@@ -42,9 +42,6 @@ class Route:
     route: List[Location]
 
 
-
-
-
 @dataclass
 class Domain:
     station: Location
@@ -54,7 +51,7 @@ class Domain:
 @dataclass
 class Solution:
     routes: List[Route]
-    
+
     def __repr__(self):
         return f"Solution(routes={self.routes})"
 
@@ -62,17 +59,17 @@ class Solution:
         """
         Serializes the Solution instance to a text file using the __repr__ method.
         """
-        with open(file_path, 'w') as file:
-            file.write(repr(self)) 
+        with open(file_path, "w") as file:
+            file.write(repr(self))
 
     @staticmethod
-    def deserialize(file_path: str) -> 'Solution':
+    def deserialize(file_path: str) -> "Solution":
         """
         Deserializes the Solution instance from a text file using eval().
         """
-        with open(file_path, 'r') as file:
-            data = file.read() 
-            return eval(data) 
+        with open(file_path, "r") as file:
+            data = file.read()
+            return eval(data)
 
 
 @dataclass
@@ -153,7 +150,7 @@ class SimulatedAnnealing:
         def distance_cost(solution: Solution) -> Cost:
             def distance(p1: Point, p2: Point) -> float:
                 return math.hypot(p1.x - p2.x, p1.y - p2.y)
-            
+
             total_distance = 0.0
             for route in solution.routes:
                 route_distance = 0.0
@@ -224,25 +221,25 @@ def plot_main(initial_solution: Solution, best_solution: Solution, store_path: s
 
     plt.tight_layout()
     plt.savefig(store_path)
-    plt.show()
-    
-    
+    # plt.show()
+
+
 def plot_performance(df: pd.DataFrame, store_path: str):
     fig, axs = plt.subplots(1, 2, figsize=(14, 5))
 
     # Plot execution time vs. customer count
-    axs[0].plot(df['customer_count'], df['total_time'], marker='o')
-    axs[0].set_xlabel('Number of Customers')
-    axs[0].set_ylabel('Execution Time (s)')
-    axs[0].set_title('Execution Time vs. Number of Customers')
+    axs[0].plot(df["customer_count"], df["total_time"], marker="o")
+    axs[0].set_xlabel("Number of Customers")
+    axs[0].set_ylabel("Execution Time (s)")
+    axs[0].set_title("Execution Time vs. Number of Customers")
     axs[0].grid(True)
 
     # Plot cost reduction vs. customer count
-    cost_reduction = df['initial_cost'] - df['best_cost']
-    axs[1].plot(df['customer_count'], cost_reduction, marker='o', color='green')
-    axs[1].set_xlabel('Number of Customers')
-    axs[1].set_ylabel('Cost Reduction')
-    axs[1].set_title('Cost Reduction vs. Number of Customers')
+    cost_reduction = df["initial_cost"] - df["best_cost"]
+    axs[1].plot(df["customer_count"], cost_reduction, marker="o", color="green")
+    axs[1].set_xlabel("Number of Customers")
+    axs[1].set_ylabel("Cost Reduction")
+    axs[1].set_title("Cost Reduction vs. Number of Customers")
     axs[1].grid(True)
 
     plt.tight_layout()
@@ -257,51 +254,67 @@ class TestCase:
     x_max: int
     y_max: int
     test_directory: str
-    
+
+
 class ExecutionMode(Enum):
     LOAD = 1
     GENERATE = 2
-    
+
+
 def file_write(path: str, content: str) -> None:
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         f.write(content)
-        
+
+
 def file_read(path: str) -> str:
     if os.path.exists(path):
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             return f.read()
     else:
         return ""
 
+
 def main():
     execution_mode = ExecutionMode.LOAD
-    
+
     test_cases: List[TestCase] = [
-        TestCase('Small', 10, 100, 100, 'tests/1/'),
-        TestCase('Medium', 20, 100, 100, 'tests/2/'),
-        TestCase('Large', 30, 100, 100, 'tests/3/'),
-        TestCase('Huge', 40, 100, 100, 'tests/4/'),
-        TestCase('Giant', 50, 100, 100, 'tests/5/'),
-        TestCase('Colossal', 100, 100, 100, 'tests/6/'),
-        TestCase('Gigantic', 200, 100, 100, 'tests/7/'),
+        TestCase("Small", 10, 100, 100, "tests/1/"),
+        TestCase("Medium", 20, 100, 100, "tests/2/"),
+        TestCase("Large", 30, 100, 100, "tests/3/"),
+        TestCase("Huge", 40, 100, 100, "tests/4/"),
+        TestCase("Giant", 50, 100, 100, "tests/5/"),
+        TestCase("Colossal", 100, 100, 100, "tests/6/"),
+        TestCase("Gigantic", 200, 100, 100, "tests/7/"),
     ]
-    
+
     results = []
-    
+
     for test_case in test_cases:
         test_directory = test_case.test_directory
         if not os.path.exists(test_directory):
             os.makedirs(test_directory)
-            
-        location_initial_location = os.path.join(test_case.test_directory, 'initial_solution.txt')
-        location_result_location = os.path.join(test_case.test_directory, 'best_solution.txt')
-        execution_time_save_location = os.path.join(test_case.test_directory, 'execution_time.txt')
 
-            
+        location_initial_location = os.path.join(
+            test_case.test_directory, "initial_solution.txt"
+        )
+        location_result_location = os.path.join(
+            test_case.test_directory, "best_solution.txt"
+        )
+        execution_time_save_location = os.path.join(
+            test_case.test_directory, "execution_time.txt"
+        )
+
         if execution_mode == ExecutionMode.GENERATE or not all(
-            [os.path.exists(location_initial_location), os.path.exists(location_result_location), os.path.exists(execution_time_save_location)]):
-        
-            station = Location(test_case.x_max / 2, test_case.y_max / 2, 1, LocationType.station.value)
+            [
+                os.path.exists(location_initial_location),
+                os.path.exists(location_result_location),
+                os.path.exists(execution_time_save_location),
+            ]
+        ):
+
+            station = Location(
+                test_case.x_max / 2, test_case.y_max / 2, 1, LocationType.station.value
+            )
             customers = [
                 Location(
                     random.uniform(0, test_case.x_max),
@@ -313,7 +326,6 @@ def main():
             ]
 
             domain = Domain(station, customers)
-        
 
             cooling_schedule = CoolingSchedule(
                 test_case.customer_count,
@@ -345,36 +357,36 @@ def main():
                 cooling_schedule.get_iteration_steps(),
             )
             end = t.time()
-        
-        
+
             best_solution.serialize(location_result_location)
             initial_solution.serialize(location_initial_location)
             total_time = str(end - start)
             file_write(execution_time_save_location, total_time)
             prints.solution(best_solution)
             print("Total time: ", end - start)
-            
+
         elif execution_mode == ExecutionMode.LOAD:
             initial_solution = Solution.deserialize(location_initial_location)
             best_solution = Solution.deserialize(location_result_location)
-            total_time = float(file_read(execution_time_save_location).strip()) if file_read(execution_time_save_location) else 0
-            
-        
-        results.append({
-            'customer_count': test_case.customer_count,
-            'initial_cost': SimulatedAnnealing.cost_function(initial_solution).soft,
-            'best_cost': SimulatedAnnealing.cost_function(best_solution).soft,
-            'total_time': total_time
-        })
-        
+            total_time = (
+                float(file_read(execution_time_save_location).strip())
+                if file_read(execution_time_save_location)
+                else 0
+            )
 
+        results.append(
+            {
+                "customer_count": test_case.customer_count,
+                "initial_cost": SimulatedAnnealing.cost_function(initial_solution).soft,
+                "best_cost": SimulatedAnnealing.cost_function(best_solution).soft,
+                "total_time": total_time,
+            }
+        )
 
-        
-        plot_save_location = os.path.join(test_case.test_directory, 'plot.png')
+        plot_save_location = os.path.join(test_case.test_directory, "plot.png")
         plot_main(initial_solution, best_solution, plot_save_location)
-    
-    plot_performance(pd.DataFrame(results), 'tests/overview.png')
 
+    plot_performance(pd.DataFrame(results), "tests/overview.png")
 
 
 if __name__ == "__main__":
