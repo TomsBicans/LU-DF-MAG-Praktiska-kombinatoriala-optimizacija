@@ -221,7 +221,7 @@ def plot_main(initial_solution: Solution, best_solution: Solution, store_path: s
 
     plt.tight_layout()
     plt.savefig(store_path)
-    plt.show()
+    # plt.show()
 
 
 def plot_performance(df: pd.DataFrame, store_path: str):
@@ -244,7 +244,7 @@ def plot_performance(df: pd.DataFrame, store_path: str):
 
     plt.tight_layout()
     plt.savefig(store_path)
-    plt.show()
+    # plt.show()
 
 
 @dataclass
