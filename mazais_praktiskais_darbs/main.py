@@ -75,7 +75,7 @@ class Solution:
 @dataclass
 class TemperatureStep:
     temperature: float
-    iteration_steps_constant: int
+    iteration_steps_base: int
 
 
 @dataclass
@@ -85,7 +85,7 @@ class CoolingSchedule:
 
     def get_iteration_steps(self) -> List[int]:
         return [
-            int(int(step.iteration_steps_constant**2) * self.customer_count)
+            int(int(step.iteration_steps_base**2) * self.customer_count)
             for step in self.temperature_steps
         ]
 
@@ -197,7 +197,7 @@ def plot_main(initial_solution: Solution, best_solution: Solution, store_path: s
             y = [location.y for location in route.route]
             ax.plot(x, y, marker="o")
             for location in route.route:
-                ax.annotate(location.name[:4].upper(), (location.x, location.y))
+                ax.annotate(location.name[:1].upper(), (location.x, location.y))
         ax.set_title(title)
         ax.set_xlabel("X Coordinate")
         ax.set_ylabel("Y Coordinate")
@@ -438,21 +438,21 @@ def main():
                 cooling_schedule = CoolingSchedule(
                     test_case.customer_count,
                     temperature_steps=[
-                        TemperatureStep(temperature=1000, iteration_steps_constant=100),
-                        TemperatureStep(temperature=900, iteration_steps_constant=100),
-                        TemperatureStep(temperature=800, iteration_steps_constant=100),
-                        TemperatureStep(temperature=700, iteration_steps_constant=100),
-                        TemperatureStep(temperature=600, iteration_steps_constant=100),
-                        TemperatureStep(temperature=500, iteration_steps_constant=100),
-                        TemperatureStep(temperature=400, iteration_steps_constant=80),
-                        TemperatureStep(temperature=300, iteration_steps_constant=80),
-                        TemperatureStep(temperature=200, iteration_steps_constant=60),
-                        TemperatureStep(temperature=100, iteration_steps_constant=60),
-                        TemperatureStep(temperature=50, iteration_steps_constant=40),
-                        TemperatureStep(temperature=25, iteration_steps_constant=40),
-                        TemperatureStep(temperature=10, iteration_steps_constant=30),
-                        TemperatureStep(temperature=5, iteration_steps_constant=20),
-                        TemperatureStep(temperature=1, iteration_steps_constant=10),
+                        TemperatureStep(temperature=1000, iteration_steps_base=100),
+                        TemperatureStep(temperature=900, iteration_steps_base=100),
+                        TemperatureStep(temperature=800, iteration_steps_base=100),
+                        TemperatureStep(temperature=700, iteration_steps_base=100),
+                        TemperatureStep(temperature=600, iteration_steps_base=100),
+                        TemperatureStep(temperature=500, iteration_steps_base=100),
+                        TemperatureStep(temperature=400, iteration_steps_base=80),
+                        TemperatureStep(temperature=300, iteration_steps_base=80),
+                        TemperatureStep(temperature=200, iteration_steps_base=60),
+                        TemperatureStep(temperature=100, iteration_steps_base=60),
+                        TemperatureStep(temperature=50, iteration_steps_base=40),
+                        TemperatureStep(temperature=25, iteration_steps_base=40),
+                        TemperatureStep(temperature=10, iteration_steps_base=30),
+                        TemperatureStep(temperature=5, iteration_steps_base=20),
+                        TemperatureStep(temperature=1, iteration_steps_base=10),
                     ],
                 )
 
