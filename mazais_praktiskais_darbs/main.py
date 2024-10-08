@@ -221,7 +221,7 @@ def plot_main(initial_solution: Solution, best_solution: Solution, store_path: s
 
     plt.tight_layout()
     plt.savefig(store_path)
-    # plt.show()
+    plt.show()
 
 
 def plot_performance(df: pd.DataFrame, store_path: str):
@@ -250,6 +250,7 @@ def plot_performance(df: pd.DataFrame, store_path: str):
 @dataclass
 class TestCase:
     name: str
+    domain_variations: List[Callable[[], Domain]]
     customer_count: int
     x_max: int
     y_max: int
@@ -274,17 +275,134 @@ def file_read(path: str) -> str:
         return ""
 
 
+class Examples:
+    def basic_domain(test_case: TestCase) -> Domain:
+        station = Location(
+            test_case.x_max / 2,
+            test_case.y_max / 2,
+            1,
+            LocationType.station.value,
+        )
+        customers = [
+            Location(
+                random.uniform(0, test_case.x_max),
+                random.uniform(0, test_case.y_max),
+                i + 2,
+                LocationType.customer.value,
+            )
+            for i in range(test_case.customer_count)
+        ]
+
+        domain = Domain(station, customers)
+        return domain
+
+    def three_cities(test_case: TestCase) -> Domain:
+        # Define the centers of the three clusters
+        cluster_centers = [
+            (test_case.x_max * 0.25, test_case.y_max * 0.25),  # Top-left cluster
+            (test_case.x_max * 0.75, test_case.y_max * 0.25),  # Top-right cluster
+            (test_case.x_max * 0.5, test_case.y_max * 0.75),  # Bottom-center cluster
+        ]
+
+        # Radius of the dense cluster region
+        cluster_radius = min(test_case.x_max, test_case.y_max) * 0.1
+
+        # Split customers equally between the three clusters
+        customers_per_cluster = test_case.customer_count // 3
+        remainder = (
+            test_case.customer_count % 3
+        )  # If not divisible by 3, distribute remainder
+
+        customers = []
+        customer_id = 2
+
+        # Generate customers for each cluster
+        for i, (center_x, center_y) in enumerate(cluster_centers):
+            count = customers_per_cluster + (
+                1 if i < remainder else 0
+            )  # Distribute remainder
+
+            for _ in range(count):
+                # Create customers within a circular region around the cluster center
+                angle = random.uniform(0, 2 * 3.14159)
+                radius = random.uniform(0, cluster_radius)
+                x = center_x + radius * math.cos(angle)
+                y = center_y + radius * math.sin(angle)
+
+                customers.append(
+                    Location(x, y, customer_id, LocationType.customer.value)
+                )
+                customer_id += 1
+
+        # Place the station in the center of the domain
+        station = Location(
+            test_case.x_max / 2, test_case.y_max / 2, 1, LocationType.station.value
+        )
+
+        domain = Domain(station, customers)
+        return domain
+
+
 def main():
     execution_mode = ExecutionMode.LOAD
 
     test_cases: List[TestCase] = [
-        TestCase("Small", 10, 100, 100, "tests/1/"),
-        TestCase("Medium", 20, 100, 100, "tests/2/"),
-        TestCase("Large", 30, 100, 100, "tests/3/"),
-        TestCase("Huge", 40, 100, 100, "tests/4/"),
-        TestCase("Giant", 50, 100, 100, "tests/5/"),
-        TestCase("Colossal", 100, 100, 100, "tests/6/"),
-        TestCase("Gigantic", 200, 100, 100, "tests/7/"),
+        TestCase(
+            "Small",
+            [Examples.basic_domain, Examples.three_cities],
+            10,
+            100,
+            100,
+            "tests/1/",
+        ),
+        TestCase(
+            "Medium",
+            [Examples.basic_domain, Examples.three_cities],
+            20,
+            100,
+            100,
+            "tests/2/",
+        ),
+        TestCase(
+            "Large",
+            [Examples.basic_domain, Examples.three_cities],
+            30,
+            100,
+            100,
+            "tests/3/",
+        ),
+        TestCase(
+            "Huge",
+            [Examples.basic_domain, Examples.three_cities],
+            40,
+            100,
+            100,
+            "tests/4/",
+        ),
+        TestCase(
+            "Giant",
+            [Examples.basic_domain, Examples.three_cities],
+            50,
+            100,
+            100,
+            "tests/5/",
+        ),
+        TestCase(
+            "Colossal",
+            [Examples.basic_domain, Examples.three_cities],
+            100,
+            100,
+            100,
+            "tests/6/",
+        ),
+        TestCase(
+            "Gigantic",
+            [Examples.basic_domain, Examples.three_cities],
+            200,
+            100,
+            100,
+            "tests/7/",
+        ),
     ]
 
     results = []
@@ -294,97 +412,91 @@ def main():
         if not os.path.exists(test_directory):
             os.makedirs(test_directory)
 
-        location_initial_location = os.path.join(
-            test_case.test_directory, "initial_solution.txt"
-        )
-        location_result_location = os.path.join(
-            test_case.test_directory, "best_solution.txt"
-        )
-        execution_time_save_location = os.path.join(
-            test_case.test_directory, "execution_time.txt"
-        )
+        for domain_variation in test_case.domain_variations:
 
-        if execution_mode == ExecutionMode.GENERATE or not all(
-            [
-                os.path.exists(location_initial_location),
-                os.path.exists(location_result_location),
-                os.path.exists(execution_time_save_location),
-            ]
-        ):
-
-            station = Location(
-                test_case.x_max / 2, test_case.y_max / 2, 1, LocationType.station.value
+            subname = domain_variation.__name__
+            location_initial_location = os.path.join(
+                test_case.test_directory, f"initial_solution_{subname}.txt"
             )
-            customers = [
-                Location(
-                    random.uniform(0, test_case.x_max),
-                    random.uniform(0, test_case.y_max),
-                    i + 2,
-                    LocationType.customer.value,
+            location_result_location = os.path.join(
+                test_case.test_directory, f"best_solution_{subname}.txt"
+            )
+            execution_time_save_location = os.path.join(
+                test_case.test_directory, f"execution_time_{subname}.txt"
+            )
+
+            if execution_mode == ExecutionMode.GENERATE or not all(
+                [
+                    os.path.exists(location_initial_location),
+                    os.path.exists(location_result_location),
+                    os.path.exists(execution_time_save_location),
+                ]
+            ):
+
+                domain = domain_variation(test_case)
+
+                cooling_schedule = CoolingSchedule(
+                    test_case.customer_count,
+                    temperature_steps=[
+                        TemperatureStep(temperature=1000, iteration_steps_constant=100),
+                        TemperatureStep(temperature=900, iteration_steps_constant=100),
+                        TemperatureStep(temperature=800, iteration_steps_constant=100),
+                        TemperatureStep(temperature=700, iteration_steps_constant=100),
+                        TemperatureStep(temperature=600, iteration_steps_constant=100),
+                        TemperatureStep(temperature=500, iteration_steps_constant=100),
+                        TemperatureStep(temperature=400, iteration_steps_constant=80),
+                        TemperatureStep(temperature=300, iteration_steps_constant=80),
+                        TemperatureStep(temperature=200, iteration_steps_constant=60),
+                        TemperatureStep(temperature=100, iteration_steps_constant=60),
+                        TemperatureStep(temperature=50, iteration_steps_constant=40),
+                        TemperatureStep(temperature=25, iteration_steps_constant=40),
+                        TemperatureStep(temperature=10, iteration_steps_constant=30),
+                        TemperatureStep(temperature=5, iteration_steps_constant=20),
+                        TemperatureStep(temperature=1, iteration_steps_constant=10),
+                    ],
                 )
-                for i in range(test_case.customer_count)
-            ]
 
-            domain = Domain(station, customers)
+                start = t.time()
+                initial_solution, best_solution = SimulatedAnnealing.main(
+                    domain,
+                    SimulatedAnnealing.cost_function,
+                    SimulatedAnnealing.neighbour_function,
+                    cooling_schedule.get_temperatures(),
+                    cooling_schedule.get_iteration_steps(),
+                )
+                end = t.time()
 
-            cooling_schedule = CoolingSchedule(
-                test_case.customer_count,
-                temperature_steps=[
-                    TemperatureStep(temperature=1000, iteration_steps_constant=100),
-                    TemperatureStep(temperature=900, iteration_steps_constant=100),
-                    TemperatureStep(temperature=800, iteration_steps_constant=100),
-                    TemperatureStep(temperature=700, iteration_steps_constant=100),
-                    TemperatureStep(temperature=600, iteration_steps_constant=100),
-                    TemperatureStep(temperature=500, iteration_steps_constant=100),
-                    TemperatureStep(temperature=400, iteration_steps_constant=80),
-                    TemperatureStep(temperature=300, iteration_steps_constant=80),
-                    TemperatureStep(temperature=200, iteration_steps_constant=60),
-                    TemperatureStep(temperature=100, iteration_steps_constant=60),
-                    TemperatureStep(temperature=50, iteration_steps_constant=40),
-                    TemperatureStep(temperature=25, iteration_steps_constant=40),
-                    TemperatureStep(temperature=10, iteration_steps_constant=30),
-                    TemperatureStep(temperature=5, iteration_steps_constant=20),
-                    TemperatureStep(temperature=1, iteration_steps_constant=10),
-                ],
+                best_solution.serialize(location_result_location)
+                initial_solution.serialize(location_initial_location)
+                total_time = str(end - start)
+                file_write(execution_time_save_location, total_time)
+                prints.solution(best_solution)
+                print("Total time: ", end - start)
+
+            elif execution_mode == ExecutionMode.LOAD:
+                initial_solution = Solution.deserialize(location_initial_location)
+                best_solution = Solution.deserialize(location_result_location)
+                total_time = (
+                    float(file_read(execution_time_save_location).strip())
+                    if file_read(execution_time_save_location)
+                    else 0
+                )
+
+            results.append(
+                {
+                    "customer_count": test_case.customer_count,
+                    "initial_cost": SimulatedAnnealing.cost_function(
+                        initial_solution
+                    ).soft,
+                    "best_cost": SimulatedAnnealing.cost_function(best_solution).soft,
+                    "total_time": total_time,
+                }
             )
 
-            start = t.time()
-            initial_solution, best_solution = SimulatedAnnealing.main(
-                domain,
-                SimulatedAnnealing.cost_function,
-                SimulatedAnnealing.neighbour_function,
-                cooling_schedule.get_temperatures(),
-                cooling_schedule.get_iteration_steps(),
+            plot_save_location = os.path.join(
+                test_case.test_directory, f"plot_{subname}.png"
             )
-            end = t.time()
-
-            best_solution.serialize(location_result_location)
-            initial_solution.serialize(location_initial_location)
-            total_time = str(end - start)
-            file_write(execution_time_save_location, total_time)
-            prints.solution(best_solution)
-            print("Total time: ", end - start)
-
-        elif execution_mode == ExecutionMode.LOAD:
-            initial_solution = Solution.deserialize(location_initial_location)
-            best_solution = Solution.deserialize(location_result_location)
-            total_time = (
-                float(file_read(execution_time_save_location).strip())
-                if file_read(execution_time_save_location)
-                else 0
-            )
-
-        results.append(
-            {
-                "customer_count": test_case.customer_count,
-                "initial_cost": SimulatedAnnealing.cost_function(initial_solution).soft,
-                "best_cost": SimulatedAnnealing.cost_function(best_solution).soft,
-                "total_time": total_time,
-            }
-        )
-
-        plot_save_location = os.path.join(test_case.test_directory, "plot.png")
-        plot_main(initial_solution, best_solution, plot_save_location)
+            plot_main(initial_solution, best_solution, plot_save_location)
 
     plot_performance(pd.DataFrame(results), "tests/overview.png")
 
