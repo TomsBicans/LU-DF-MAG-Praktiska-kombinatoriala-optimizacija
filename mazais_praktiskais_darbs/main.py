@@ -297,33 +297,25 @@ class Examples:
         return domain
 
     def three_cities(test_case: TestCase) -> Domain:
-        # Define the centers of the three clusters
         cluster_centers = [
-            (test_case.x_max * 0.25, test_case.y_max * 0.25),  # Top-left cluster
-            (test_case.x_max * 0.75, test_case.y_max * 0.25),  # Top-right cluster
-            (test_case.x_max * 0.5, test_case.y_max * 0.75),  # Bottom-center cluster
+            (test_case.x_max * 0.25, test_case.y_max * 0.25),
+            (test_case.x_max * 0.75, test_case.y_max * 0.25),
+            (test_case.x_max * 0.5, test_case.y_max * 0.75),
         ]
 
-        # Radius of the dense cluster region
         cluster_radius = min(test_case.x_max, test_case.y_max) * 0.1
 
-        # Split customers equally between the three clusters
         customers_per_cluster = test_case.customer_count // 3
-        remainder = (
-            test_case.customer_count % 3
-        )  # If not divisible by 3, distribute remainder
+        remainder = test_case.customer_count % 3
 
         customers = []
         customer_id = 2
 
-        # Generate customers for each cluster
         for i, (center_x, center_y) in enumerate(cluster_centers):
-            count = customers_per_cluster + (
-                1 if i < remainder else 0
-            )  # Distribute remainder
+            count = customers_per_cluster + (1 if i < remainder else 0)
 
             for _ in range(count):
-                # Create customers within a circular region around the cluster center
+
                 angle = random.uniform(0, 2 * 3.14159)
                 radius = random.uniform(0, cluster_radius)
                 x = center_x + radius * math.cos(angle)
@@ -334,7 +326,6 @@ class Examples:
                 )
                 customer_id += 1
 
-        # Place the station in the center of the domain
         station = Location(
             test_case.x_max / 2, test_case.y_max / 2, 1, LocationType.station.value
         )
