@@ -246,6 +246,7 @@ def plot_performance(df: pd.DataFrame, store_path: str):
     axs[1].grid(True)
 
     plt.tight_layout()
+    plt.savefig(store_path)
     plt.show()
 
 
