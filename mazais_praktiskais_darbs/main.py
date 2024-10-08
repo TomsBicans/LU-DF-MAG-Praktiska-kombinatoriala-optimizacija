@@ -7,6 +7,8 @@ from matplotlib.axes import Axes
 from enum import Enum
 import time as t
 from tqdm import tqdm
+import os
+import pandas as pd
 
 
 @dataclass
@@ -191,7 +193,7 @@ class prints:
                 print(stop)
 
 
-def plot_main(initial_solution: Solution, best_solution: Solution):
+def plot_main(initial_solution: Solution, best_solution: Solution, store_path: str):
     def plot_solution(ax: Axes, solution: Solution, title: str):
         for route in solution.routes:
             x = [location.x for location in route.route]
@@ -221,68 +223,156 @@ def plot_main(initial_solution: Solution, best_solution: Solution):
     )
 
     plt.tight_layout()
+    plt.savefig(store_path)
+    plt.show()
+    
+    
+def plot_performance(df: pd.DataFrame, store_path: str):
+    fig, axs = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Plot execution time vs. customer count
+    axs[0].plot(df['customer_count'], df['total_time'], marker='o')
+    axs[0].set_xlabel('Number of Customers')
+    axs[0].set_ylabel('Execution Time (s)')
+    axs[0].set_title('Execution Time vs. Number of Customers')
+    axs[0].grid(True)
+
+    # Plot cost reduction vs. customer count
+    cost_reduction = df['initial_cost'] - df['best_cost']
+    axs[1].plot(df['customer_count'], cost_reduction, marker='o', color='green')
+    axs[1].set_xlabel('Number of Customers')
+    axs[1].set_ylabel('Cost Reduction')
+    axs[1].set_title('Cost Reduction vs. Number of Customers')
+    axs[1].grid(True)
+
+    plt.tight_layout()
     plt.show()
 
 
+@dataclass
+class TestCase:
+    name: str
+    customer_count: int
+    x_max: int
+    y_max: int
+    test_directory: str
+    
+class ExecutionMode(Enum):
+    LOAD = 1
+    GENERATE = 2
+    
+def file_write(path: str, content: str) -> None:
+    with open(path, 'w') as f:
+        f.write(content)
+        
+def file_read(path: str) -> str:
+    if os.path.exists(path):
+        with open(path, 'r') as f:
+            return f.read()
+    else:
+        return ""
+
 def main():
-    x_max = 100
-    y_max = 100
-    customer_count = 10
-    station = Location(x_max / 2, y_max / 2, 1, LocationType.station.value)
-    customers = [
-        Location(
-            random.uniform(0, x_max),
-            random.uniform(0, y_max),
-            i + 2,
-            LocationType.customer.value,
-        )
-        for i in range(customer_count)
+    execution_mode = ExecutionMode.LOAD
+    
+    test_cases: List[TestCase] = [
+        TestCase('Small', 10, 100, 100, 'tests/1/'),
+        TestCase('Medium', 20, 100, 100, 'tests/2/'),
+        # TestCase('Large', 30, 100, 100, 'tests/3/'),
+        # TestCase('Huge', 40, 100, 100, 'tests/4/'),
+        # TestCase('Giant', 50, 100, 100, 'tests/5/'),
+        # TestCase('Colossal', 100, 100, 100, 'tests/6/'),
+        # TestCase('Gigantic', 200, 100, 100, 'tests/7/'),
     ]
-
-    domain = Domain(station, customers)
     
-
-    cooling_schedule = CoolingSchedule(
-        customer_count,
-        temperature_steps=[
-            TemperatureStep(temperature=1000, iteration_steps_constant=100),
-            TemperatureStep(temperature=900, iteration_steps_constant=100),
-            TemperatureStep(temperature=800, iteration_steps_constant=100),
-            TemperatureStep(temperature=700, iteration_steps_constant=100),
-            TemperatureStep(temperature=600, iteration_steps_constant=100),
-            TemperatureStep(temperature=500, iteration_steps_constant=100),
-            TemperatureStep(temperature=400, iteration_steps_constant=80),
-            TemperatureStep(temperature=300, iteration_steps_constant=80),
-            TemperatureStep(temperature=200, iteration_steps_constant=60),
-            TemperatureStep(temperature=100, iteration_steps_constant=60),
-            TemperatureStep(temperature=50, iteration_steps_constant=40),
-            TemperatureStep(temperature=25, iteration_steps_constant=40),
-            TemperatureStep(temperature=10, iteration_steps_constant=30),
-            TemperatureStep(temperature=5, iteration_steps_constant=20),
-            TemperatureStep(temperature=1, iteration_steps_constant=10),
-        ],
-    )
-
-    start = t.time()
-    initial_solution, best_solution = SimulatedAnnealing.main(
-        domain,
-        SimulatedAnnealing.cost_function,
-        SimulatedAnnealing.neighbour_function,
-        cooling_schedule.get_temperatures(),
-        cooling_schedule.get_iteration_steps(),
-    )
-    end = t.time()
-
-    prints.solution(best_solution)
-    print("Total time: ", end - start)
-
-    best_solution.serialize("best_solution.txt")
+    results = []
     
-    test = Solution.deserialize("best_solution.txt")
-    print(test)
+    for test_case in test_cases:
+        test_directory = test_case.test_directory
+        if not os.path.exists(test_directory):
+            os.makedirs(test_directory)
+            
+        location_initial_location = os.path.join(test_case.test_directory, 'initial_solution.txt')
+        location_result_location = os.path.join(test_case.test_directory, 'best_solution.txt')
+        execution_time_save_location = os.path.join(test_case.test_directory, 'execution_time.txt')
+
+            
+        if execution_mode == ExecutionMode.GENERATE or not all(
+            [os.path.exists(location_initial_location), os.path.exists(location_result_location), os.path.exists(execution_time_save_location)]):
+        
+            station = Location(test_case.x_max / 2, test_case.y_max / 2, 1, LocationType.station.value)
+            customers = [
+                Location(
+                    random.uniform(0, test_case.x_max),
+                    random.uniform(0, test_case.y_max),
+                    i + 2,
+                    LocationType.customer.value,
+                )
+                for i in range(test_case.customer_count)
+            ]
+
+            domain = Domain(station, customers)
+        
+
+            cooling_schedule = CoolingSchedule(
+                test_case.customer_count,
+                temperature_steps=[
+                    TemperatureStep(temperature=1000, iteration_steps_constant=100),
+                    TemperatureStep(temperature=900, iteration_steps_constant=100),
+                    TemperatureStep(temperature=800, iteration_steps_constant=100),
+                    TemperatureStep(temperature=700, iteration_steps_constant=100),
+                    TemperatureStep(temperature=600, iteration_steps_constant=100),
+                    TemperatureStep(temperature=500, iteration_steps_constant=100),
+                    TemperatureStep(temperature=400, iteration_steps_constant=80),
+                    TemperatureStep(temperature=300, iteration_steps_constant=80),
+                    TemperatureStep(temperature=200, iteration_steps_constant=60),
+                    TemperatureStep(temperature=100, iteration_steps_constant=60),
+                    TemperatureStep(temperature=50, iteration_steps_constant=40),
+                    TemperatureStep(temperature=25, iteration_steps_constant=40),
+                    TemperatureStep(temperature=10, iteration_steps_constant=30),
+                    TemperatureStep(temperature=5, iteration_steps_constant=20),
+                    TemperatureStep(temperature=1, iteration_steps_constant=10),
+                ],
+            )
+
+            start = t.time()
+            initial_solution, best_solution = SimulatedAnnealing.main(
+                domain,
+                SimulatedAnnealing.cost_function,
+                SimulatedAnnealing.neighbour_function,
+                cooling_schedule.get_temperatures(),
+                cooling_schedule.get_iteration_steps(),
+            )
+            end = t.time()
+        
+        
+            best_solution.serialize(location_result_location)
+            initial_solution.serialize(location_initial_location)
+            total_time = str(end - start)
+            file_write(execution_time_save_location, total_time)
+            prints.solution(best_solution)
+            print("Total time: ", end - start)
+            
+        elif execution_mode == ExecutionMode.LOAD:
+            initial_solution = Solution.deserialize(location_initial_location)
+            best_solution = Solution.deserialize(location_result_location)
+            total_time = float(file_read(execution_time_save_location).strip()) if file_read(execution_time_save_location) else 0
+            
+        
+        results.append({
+            'customer_count': test_case.customer_count,
+            'initial_cost': SimulatedAnnealing.cost_function(initial_solution).soft,
+            'best_cost': SimulatedAnnealing.cost_function(best_solution).soft,
+            'total_time': total_time
+        })
+        
+
+
+        
+        plot_save_location = os.path.join(test_case.test_directory, 'plot.png')
+        plot_main(initial_solution, best_solution, plot_save_location)
     
-    plot_main(initial_solution, best_solution)
-    
+    plot_performance(pd.DataFrame(results), 'tests/overview.png')
 
 
 
