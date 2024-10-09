@@ -344,6 +344,53 @@ class Examples:
         domain = Domain(station, customers)
         return domain
 
+    def seven_cities(test_case: TestCase) -> Domain:
+        cluster_centers = [
+            (test_case.x_max * 0.2, test_case.y_max * 0.2),
+            (test_case.x_max * 0.8, test_case.y_max * 0.2),
+            (test_case.x_max * 0.5, test_case.y_max * 0.35),
+            (test_case.x_max * 0.2, test_case.y_max * 0.8),
+            (test_case.x_max * 0.8, test_case.y_max * 0.8),
+            (test_case.x_max * 0.35, test_case.y_max * 0.55),
+            (test_case.x_max * 0.65, test_case.y_max * 0.55),
+        ]
+
+        cluster_radius = min(test_case.x_max, test_case.y_max) * 0.1
+
+        customers_per_cluster = test_case.customer_count // 7
+        remainder = test_case.customer_count % 7
+
+        customers = []
+        customer_id = 2
+
+        for i, (center_x, center_y) in enumerate(cluster_centers):
+
+            count = customers_per_cluster + (1 if i < remainder else 0)
+
+            for _ in range(count):
+                angle = random.uniform(0, 2 * math.pi)
+                radius = random.uniform(0, cluster_radius)
+                x = center_x + radius * math.cos(angle)
+                y = center_y + radius * math.sin(angle)
+
+                x = max(0, min(test_case.x_max, x))
+                y = max(0, min(test_case.y_max, y))
+
+                customers.append(
+                    Location(x, y, customer_id, LocationType.customer.value)
+                )
+                customer_id += 1
+
+        station = Location(
+            test_case.x_max / 2,
+            test_case.y_max / 2,
+            1,
+            LocationType.station.value,
+        )
+
+        domain = Domain(station, customers)
+        return domain
+
 
 def main():
     execution_mode = ExecutionMode.LOAD
@@ -351,7 +398,7 @@ def main():
     test_cases: List[TestCase] = [
         TestCase(
             "Small",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             10,
             100,
             100,
@@ -359,7 +406,7 @@ def main():
         ),
         TestCase(
             "Medium",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             20,
             100,
             100,
@@ -367,7 +414,7 @@ def main():
         ),
         TestCase(
             "Large",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             30,
             100,
             100,
@@ -375,7 +422,7 @@ def main():
         ),
         TestCase(
             "Huge",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             40,
             100,
             100,
@@ -383,7 +430,7 @@ def main():
         ),
         TestCase(
             "Giant",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             50,
             100,
             100,
@@ -391,7 +438,7 @@ def main():
         ),
         TestCase(
             "Colossal",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             100,
             100,
             100,
@@ -399,7 +446,7 @@ def main():
         ),
         TestCase(
             "Gigantic",
-            [Examples.basic_domain, Examples.three_cities],
+            [Examples.basic_domain, Examples.three_cities, Examples.seven_cities],
             200,
             100,
             100,
