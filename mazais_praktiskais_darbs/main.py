@@ -11,6 +11,9 @@ import os
 import pandas as pd
 
 
+SHOW_CHARTS = False
+
+
 @dataclass
 class Point:
     x: float
@@ -227,7 +230,8 @@ def plot_main(
 
     plt.tight_layout()
     plt.savefig(store_path)
-    # plt.show()
+    if SHOW_CHARTS:
+        plt.show()
 
 
 def plot_performance(df: pd.DataFrame, store_path: str):
@@ -250,7 +254,8 @@ def plot_performance(df: pd.DataFrame, store_path: str):
 
     plt.tight_layout()
     plt.savefig(store_path)
-    # plt.show()
+    if SHOW_CHARTS:
+        plt.show()
 
 
 @dataclass
