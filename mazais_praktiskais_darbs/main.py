@@ -198,6 +198,7 @@ def plot_main(
     best_solution: Solution,
     store_path: str,
     customer_count: int,
+    total_time: float,
 ):
 
     def plot_solution(ax: Axes, solution: Solution, title: str):
@@ -225,7 +226,7 @@ def plot_main(
     plot_solution(
         axs[1],
         best_solution,
-        f"Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}",
+        f"Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}\n Total calculation time: {round(total_time, 2)}s",
     )
 
     plt.tight_layout()
@@ -550,6 +551,7 @@ def main():
                 best_solution,
                 plot_save_location,
                 test_case.customer_count,
+                total_time,
             )
 
     plot_performance(pd.DataFrame(results), "tests/overview.png")
