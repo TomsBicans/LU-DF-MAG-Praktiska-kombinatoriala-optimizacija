@@ -190,7 +190,13 @@ class prints:
                 print(stop)
 
 
-def plot_main(initial_solution: Solution, best_solution: Solution, store_path: str):
+def plot_main(
+    initial_solution: Solution,
+    best_solution: Solution,
+    store_path: str,
+    customer_count: int,
+):
+
     def plot_solution(ax: Axes, solution: Solution, title: str):
         for route in solution.routes:
             x = [location.x for location in route.route]
@@ -209,14 +215,14 @@ def plot_main(initial_solution: Solution, best_solution: Solution, store_path: s
     plot_solution(
         axs[0],
         initial_solution,
-        f"Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}",
+        f"Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}\n Customer Count: {customer_count}",
     )
 
     # Labākais atrastais risinājums
     plot_solution(
         axs[1],
         best_solution,
-        f"Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}",
+        f"Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}",
     )
 
     plt.tight_layout()
@@ -487,7 +493,12 @@ def main():
             plot_save_location = os.path.join(
                 test_case.test_directory, f"plot_{subname}.png"
             )
-            plot_main(initial_solution, best_solution, plot_save_location)
+            plot_main(
+                initial_solution,
+                best_solution,
+                plot_save_location,
+                test_case.customer_count,
+            )
 
     plot_performance(pd.DataFrame(results), "tests/overview.png")
 
