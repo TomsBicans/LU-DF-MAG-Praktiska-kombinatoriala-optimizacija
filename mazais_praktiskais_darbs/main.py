@@ -200,6 +200,7 @@ def plot_main(
     customer_count: int,
     total_time: float,
     test_name: str,
+    domain_variation_name: str,
 ):
 
     def plot_solution(ax: Axes, solution: Solution, title: str):
@@ -220,14 +221,14 @@ def plot_main(
     plot_solution(
         axs[0],
         initial_solution,
-        f"Scenario: {test_name}\n Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}\n Customer Count: {customer_count}",
+        f"Scenario: {test_name}\n Domain variation name: {domain_variation_name}\n Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}\n Customer Count: {customer_count}",
     )
 
     # Labākais atrastais risinājums
     plot_solution(
         axs[1],
         best_solution,
-        f"Scenario: {test_name}\n Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}\n Total calculation time: {round(total_time, 2)}s",
+        f"Scenario: {test_name}\n Domain variation name: {domain_variation_name}\n Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}\n Total calculation time: {round(total_time, 2)}s",
     )
 
     plt.tight_layout()
@@ -554,6 +555,7 @@ def main():
                 test_case.customer_count,
                 total_time,
                 test_case.name,
+                domain_variation.__name__,
             )
 
     plot_performance(pd.DataFrame(results), "tests/overview.png")
