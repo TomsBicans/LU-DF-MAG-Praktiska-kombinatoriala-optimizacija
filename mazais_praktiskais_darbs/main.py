@@ -1,7 +1,7 @@
 import math
 import random
 from dataclasses import dataclass
-from typing import List, Callable, Dict, Tuple
+from typing import List, Callable, Tuple
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from enum import Enum
