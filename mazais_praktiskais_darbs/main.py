@@ -199,6 +199,7 @@ def plot_main(
     store_path: str,
     customer_count: int,
     total_time: float,
+    test_name: str,
 ):
 
     def plot_solution(ax: Axes, solution: Solution, title: str):
@@ -219,14 +220,14 @@ def plot_main(
     plot_solution(
         axs[0],
         initial_solution,
-        f"Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}\n Customer Count: {customer_count}",
+        f"Scenario: {test_name}\n Initial Solution\n {SimulatedAnnealing.cost_function(initial_solution)}\n Customer Count: {customer_count}",
     )
 
     # Labākais atrastais risinājums
     plot_solution(
         axs[1],
         best_solution,
-        f"Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}\n Total calculation time: {round(total_time, 2)}s",
+        f"Scenario: {test_name}\n Optimized Solution\n {SimulatedAnnealing.cost_function(best_solution)}\n Customer Count: {customer_count}\n Total calculation time: {round(total_time, 2)}s",
     )
 
     plt.tight_layout()
@@ -552,6 +553,7 @@ def main():
                 plot_save_location,
                 test_case.customer_count,
                 total_time,
+                test_case.name,
             )
 
     plot_performance(pd.DataFrame(results), "tests/overview.png")
